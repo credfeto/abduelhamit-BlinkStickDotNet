@@ -379,8 +379,7 @@ namespace BlinkStickDotNet
             this._VersionMinor = -1;
 
             if (this.device == null) {
-                FilteredDeviceList loader = new FilteredDeviceList();
-                HidDevice adevice = loader.GetHidDeviceOrNull(VendorId, ProductId);
+                HidDevice adevice = DeviceList.Local.GetHidDeviceOrNull(VendorId, ProductId);
                 result = OpenDevice (adevice);
             } else {
                 result = OpenCurrentDevice();
@@ -514,7 +513,7 @@ namespace BlinkStickDotNet
                 if (connectedToDriver && stream is not null)
                 {
                     int attempt = 0;
-                    while (attempt < 5)
+                    while (true)
                     {
                         attempt++;
                         try
@@ -532,7 +531,7 @@ namespace BlinkStickDotNet
                                     return true;
                             }
 
-                            if (attempt == 5)
+                            if (attempt >= 5 && e.Message != "I/O output report failed.")
                                 throw;
 
                             if (!WaitThread(20))
@@ -625,7 +624,7 @@ namespace BlinkStickDotNet
 
             if (connectedToDriver && stream is not null) {
                 int attempt = 0;
-                while (attempt < 5)
+                while (true)
                 {
                     attempt++;
                     try
@@ -633,9 +632,9 @@ namespace BlinkStickDotNet
                         stream.GetFeature(report, 0, 33);
                         break;
                     }
-                    catch 
+                    catch (System.IO.IOException e)
                     {
-                        if (attempt == 5)
+                        if (attempt >= 5 && e.Message != "I/O output report failed.")
                             throw;
 
                         if (!WaitThread(20))
@@ -1199,8 +1198,7 @@ namespace BlinkStickDotNet
 		{
             List<BlinkStick> result = new List<BlinkStick>();
 
-            FilteredDeviceList loader = new FilteredDeviceList();
-            foreach (HidDevice adevice in loader.GetHidDevices(VendorId, ProductId).ToArray())
+            foreach (HidDevice adevice in DeviceList.Local.GetHidDevices(VendorId, ProductId).ToArray())
             {
                 BlinkStick hid = new BlinkStick();
                 hid.device = adevice;
@@ -1275,7 +1273,7 @@ namespace BlinkStickDotNet
                 return;
             }
             int attempt = 0;
-            while (attempt < 5)
+            while (true)
             {
                 attempt++;
                 try
@@ -1293,7 +1291,7 @@ namespace BlinkStickDotNet
                             return;
                     }
 
-                    if (attempt == 5)
+                    if (attempt >= 5 && e.Message != "I/O output report failed.")
                         throw;
 
                     if (!WaitThread(20))
@@ -1309,7 +1307,7 @@ namespace BlinkStickDotNet
                 return;
             }
             int attempt = 0;
-            while (attempt < 5)
+            while (true)
             {
                 attempt++;
                 try
@@ -1327,7 +1325,7 @@ namespace BlinkStickDotNet
                             return;
                     }
 
-                    if (attempt == 5)
+                    if (attempt >= 5 && e.Message != "I/O output report failed.")
                         throw;
 
                     if (!WaitThread(20))
