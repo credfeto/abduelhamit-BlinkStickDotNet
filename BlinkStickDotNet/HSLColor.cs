@@ -178,14 +178,22 @@ namespace BlinkStickDotNet
 			return s;
 		}
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return base.Equals(obj);
+			HSLColor? other = obj as HSLColor?;
+			if (other is null)
+			{
+				return false;
+			}
+			return other == this;
         }
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+			int hue = Hue.GetHashCode();
+			int lightness = Lightness.GetHashCode();
+			int saturation = Saturation.GetHashCode();
+			return (hue << 22 | hue >>> 10) ^ (lightness << 11 | lightness >>> 21) ^ saturation;
         }
 	}
 }

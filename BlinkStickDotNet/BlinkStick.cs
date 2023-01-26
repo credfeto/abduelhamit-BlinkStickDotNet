@@ -37,8 +37,8 @@ namespace BlinkStickDotNet
         protected const int VendorId = 0x20A0;
         protected const int ProductId = 0x41E5;
 
-        private HidDevice device;
-        private HidStream stream;
+        private HidDevice? device;
+        private HidStream? stream;
 
         private bool disposed = false;
 
@@ -50,7 +50,7 @@ namespace BlinkStickDotNet
         #endregion
 
         #region Events
-        public event SendColorEventHandler SendColor;
+        public event SendColorEventHandler? SendColor;
 
         public Boolean OnSendColor(byte channel, byte index, byte r, byte g, byte b)
         {
@@ -64,7 +64,7 @@ namespace BlinkStickDotNet
             return true;
         }
 
-        public event ReceiveColorEventHandler ReceiveColor;
+        public event ReceiveColorEventHandler? ReceiveColor;
 
         public Boolean OnReceiveColor(byte index, out byte r, out byte g, out byte b)
         {
@@ -110,7 +110,7 @@ namespace BlinkStickDotNet
         /// <value>Returns the serial.</value>
         public String Serial {
             get {
-                return device.GetSerialNumber();
+                return device?.GetSerialNumber() ?? "";
             }
         }
 
@@ -180,6 +180,10 @@ namespace BlinkStickDotNet
                 }
                 else if (VersionMajor == 3)
                 {
+                    if (device is null)
+                    {
+                        return BlinkStickDeviceEnum.Unknown;
+                    }
                     if (device.ReleaseNumberBcd == 0x0200)
                     {
                         return BlinkStickDeviceEnum.BlinkStickSquare;
@@ -228,7 +232,7 @@ namespace BlinkStickDotNet
         /// <value>Returns the name of the manufacturer.</value>
         public String ManufacturerName {
             get {
-                return device.GetManufacturer();
+                return device?.GetManufacturer() ?? "";
             }
         }
 
@@ -238,11 +242,11 @@ namespace BlinkStickDotNet
         /// <value>Returns the name of the product.</value>
         public String ProductName {
             get {
-                return device.GetProductName();
+                return device?.GetProductName() ?? "";
             }
         }
 
-        private String _InfoBlock1;
+        private String? _InfoBlock1;
         /// <summary>
         /// Gets or sets the name of the device (InfoBlock1).
         /// </summary>
@@ -264,7 +268,7 @@ namespace BlinkStickDotNet
             }
         }
 
-        private String _InfoBlock2;
+        private String? _InfoBlock2;
         /// <summary>
         /// Gets or sets the data of the device (InfoBlock2).
         /// </summary>
@@ -411,7 +415,7 @@ namespace BlinkStickDotNet
         private bool OpenCurrentDevice()
         {
             connectedToDriver = true;
-            device.TryOpen(out stream);
+            device?.TryOpen(out stream);
 
             return true;
         }
@@ -421,7 +425,7 @@ namespace BlinkStickDotNet
         /// </summary>
         public void CloseDevice()
         {
-            stream.Close();
+            stream?.Close();
             device = null;
             connectedToDriver = false;
         }
@@ -507,7 +511,7 @@ namespace BlinkStickDotNet
                 data = new byte[33];
                 data[0] = id;
 
-                if (connectedToDriver)
+                if (connectedToDriver && stream is not null)
                 {
                     int attempt = 0;
                     while (attempt < 5)
@@ -522,7 +526,7 @@ namespace BlinkStickDotNet
                         {
                             if (e.InnerException is System.ComponentModel.Win32Exception)
                             {
-                                System.ComponentModel.Win32Exception win32Exception = e.InnerException as System.ComponentModel.Win32Exception;
+                                System.ComponentModel.Win32Exception? win32Exception = e.InnerException as System.ComponentModel.Win32Exception;
 
                                 if (win32Exception != null && win32Exception.NativeErrorCode == 0)
                                     return true;
@@ -540,7 +544,7 @@ namespace BlinkStickDotNet
                 }
                 else
                 {
-                    data = new byte[0];
+                    data = Array.Empty<byte>();
                     return false;
                 }
             } else {
@@ -619,7 +623,7 @@ namespace BlinkStickDotNet
             byte[] report = new byte[33]; 
             report[0] = 1;
 
-            if (connectedToDriver) {
+            if (connectedToDriver && stream is not null) {
                 int attempt = 0;
                 while (attempt < 5)
                 {
@@ -783,7 +787,7 @@ namespace BlinkStickDotNet
         /// <param name="data">LED data as an array of colors [g0, r0, b0, g1, r1, b1 ...]</param>
         public Boolean GetColors (out byte[] colorData)
         {
-            if (connectedToDriver)
+            if (connectedToDriver && stream is not null)
             {
                 byte[] data = new byte[3 * 8 * 8 + 2];
                 data[0] = 9;
@@ -796,7 +800,7 @@ namespace BlinkStickDotNet
             }
             else
             {
-                colorData = new byte[0];
+                colorData = Array.Empty<byte>();
                 return false;
             }
 
@@ -884,7 +888,7 @@ namespace BlinkStickDotNet
 
         public int GetLedCount()
         {
-            if (connectedToDriver)
+            if (connectedToDriver && stream is not null)
             {
                 byte[] data = new byte[2];
                 data[0] = 0x81;
@@ -1210,7 +1214,7 @@ namespace BlinkStickDotNet
         /// Find first BlinkStick.
         /// </summary>
         /// <returns>BlinkStick device if found, otherwise null if no devices found</returns>
-        public static BlinkStick FindFirst()
+        public static BlinkStick? FindFirst()
         {
             BlinkStick[] devices = FindAll();
 
@@ -1222,7 +1226,7 @@ namespace BlinkStickDotNet
         /// </summary>
         /// <returns>BlinkStick device if found, otherwise null if no devices found</returns>
         /// <param name="serial">Serial number to search for</param>
-        public static BlinkStick FindBySerial(String serial)
+        public static BlinkStick? FindBySerial(String serial)
         {
             foreach (BlinkStick device in FindAll())
             {
@@ -1266,6 +1270,10 @@ namespace BlinkStickDotNet
 
         private void SetFeature(byte[] buffer)
         {
+            if (stream is null)
+            {
+                return;
+            }
             int attempt = 0;
             while (attempt < 5)
             {
@@ -1279,7 +1287,7 @@ namespace BlinkStickDotNet
                 {
                     if (e.InnerException is System.ComponentModel.Win32Exception)
                     {
-                        System.ComponentModel.Win32Exception win32Exception = e.InnerException as System.ComponentModel.Win32Exception;
+                        System.ComponentModel.Win32Exception? win32Exception = e.InnerException as System.ComponentModel.Win32Exception;
 
                         if (win32Exception != null && win32Exception.NativeErrorCode == 0)
                             return;
@@ -1296,6 +1304,10 @@ namespace BlinkStickDotNet
 
         private void GetFeature(byte[] buffer)
         {
+            if (stream is null)
+            {
+                return;
+            }
             int attempt = 0;
             while (attempt < 5)
             {
@@ -1309,7 +1321,7 @@ namespace BlinkStickDotNet
                 {
                     if (e.InnerException is System.ComponentModel.Win32Exception)
                     {
-                        System.ComponentModel.Win32Exception win32Exception = e.InnerException as System.ComponentModel.Win32Exception;
+                        System.ComponentModel.Win32Exception? win32Exception = e.InnerException as System.ComponentModel.Win32Exception;
 
                         if (win32Exception != null && win32Exception.NativeErrorCode == 0)
                             return;

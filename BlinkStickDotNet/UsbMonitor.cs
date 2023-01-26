@@ -27,7 +27,7 @@ namespace BlinkStickDotNet
         /// <summary>
         /// Occurs when BlinkStick is connected.
         /// </summary>
-        public event EventHandler<DeviceModifiedArgs> BlinkStickConnected;
+        public event EventHandler<DeviceModifiedArgs>? BlinkStickConnected;
 
         /// <summary>
         /// Raises the BlinkStick connected event.
@@ -44,7 +44,7 @@ namespace BlinkStickDotNet
         /// <summary>
         /// Occurs when BlinkStick disconnected.
         /// </summary>
-        public event EventHandler<DeviceModifiedArgs> BlinkStickDisconnected;
+        public event EventHandler<DeviceModifiedArgs>? BlinkStickDisconnected;
 
         /// <summary>
         /// Raises the BlinkStick disconnected event.
@@ -61,7 +61,7 @@ namespace BlinkStickDotNet
         /// <summary>
         /// Occurs when usb devices change.
         /// </summary>
-		public event EventHandler UsbDevicesChanged;
+		public event EventHandler? UsbDevicesChanged;
 		
         /// <summary>
         /// Raises the usb device changed event.
@@ -108,7 +108,7 @@ namespace BlinkStickDotNet
         /// <summary>
         /// Internal list of tracked devices.
         /// </summary>
-        List<BlinkStick> devices;
+        List<BlinkStick> devices = new List<BlinkStick>(0);
 
 #if WINDOWS
         /// <summary>
@@ -147,7 +147,7 @@ namespace BlinkStickDotNet
         /// </summary>
         /// <param name="sender">Sender object</param>
         /// <param name="e">Event args</param>
-		private void HandleDeviceListChanged (object sender, EventArgs e)
+		private void HandleDeviceListChanged (object? sender, EventArgs e)
 		{
 			OnUsbDevicesChanged();
 		}
@@ -157,7 +157,7 @@ namespace BlinkStickDotNet
         /// </summary>
         /// <param name="sender">Sender.</param>
         /// <param name="e">E.</param>
-        private void OnDeviceNotifyEvent(object sender, DeviceNotifyEventArgs e)
+        private void OnDeviceNotifyEvent(object? sender, DeviceNotifyEventArgs e)
         {
             OnUsbDevicesChanged();
         }
@@ -207,15 +207,7 @@ namespace BlinkStickDotNet
 
 			Monitoring = false;
 		}
-
-        /// <summary>
-        /// Releases unmanaged resources and performs other cleanup operations before the
-        /// <see cref="BlinkStickDotNet.UsbMonitor"/> is reclaimed by garbage collection.
-        /// </summary>
-		~UsbMonitor ()
-		{
-		}
-	}
+    }
 
     /// <summary>
     /// Device modified arguments.
