@@ -110,7 +110,7 @@ namespace BlinkStickDotNet
         /// <value>Returns the serial.</value>
         public String Serial {
             get {
-                return device.SerialNumber;
+                return device.GetSerialNumber();
             }
         }
 
@@ -180,19 +180,19 @@ namespace BlinkStickDotNet
                 }
                 else if (VersionMajor == 3)
                 {
-                    if (device.ProductVersion == 0x0200)
+                    if (device.ReleaseNumberBcd == 0x0200)
                     {
                         return BlinkStickDeviceEnum.BlinkStickSquare;
                     }
-                    else if (device.ProductVersion == 0x0201)
+                    else if (device.ReleaseNumberBcd == 0x0201)
                     {
                         return BlinkStickDeviceEnum.BlinkStickStrip;
                     }
-                    else if (device.ProductVersion == 0x0202)
+                    else if (device.ReleaseNumberBcd == 0x0202)
                     {
                         return BlinkStickDeviceEnum.BlinkStickNano;
                     }
-                    else if (device.ProductVersion == 0x0203)
+                    else if (device.ReleaseNumberBcd == 0x0203)
                     {
                         return BlinkStickDeviceEnum.BlinkStickFlex;
                     }
@@ -228,7 +228,7 @@ namespace BlinkStickDotNet
         /// <value>Returns the name of the manufacturer.</value>
         public String ManufacturerName {
             get {
-                return device.Manufacturer;
+                return device.GetManufacturer();
             }
         }
 
@@ -238,7 +238,7 @@ namespace BlinkStickDotNet
         /// <value>Returns the name of the product.</value>
         public String ProductName {
             get {
-                return device.ProductName;
+                return device.GetProductName();
             }
         }
 
@@ -375,8 +375,8 @@ namespace BlinkStickDotNet
             this._VersionMinor = -1;
 
             if (this.device == null) {
-                HidDeviceLoader loader = new HidDeviceLoader();
-                HidDevice adevice = loader.GetDevices(VendorId, ProductId).FirstOrDefault();
+                FilteredDeviceList loader = new FilteredDeviceList();
+                HidDevice adevice = loader.GetHidDeviceOrNull(VendorId, ProductId);
                 result = OpenDevice (adevice);
             } else {
                 result = OpenCurrentDevice();
@@ -1195,8 +1195,8 @@ namespace BlinkStickDotNet
 		{
             List<BlinkStick> result = new List<BlinkStick>();
 
-            HidDeviceLoader loader = new HidDeviceLoader();
-            foreach (HidDevice adevice in loader.GetDevices(VendorId, ProductId).ToArray())
+            FilteredDeviceList loader = new FilteredDeviceList();
+            foreach (HidDevice adevice in loader.GetHidDevices(VendorId, ProductId).ToArray())
             {
                 BlinkStick hid = new BlinkStick();
                 hid.device = adevice;
