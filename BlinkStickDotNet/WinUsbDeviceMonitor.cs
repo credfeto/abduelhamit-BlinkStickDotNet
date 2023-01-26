@@ -16,6 +16,7 @@
 // BlinkStick.HID library. If not, see http://www.gnu.org/licenses/.
 #endregion
 
+#if WINDOWS
 using System;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
@@ -95,4 +96,4 @@ namespace BlinkStickDotNet
 		}
 	}
 }
-
+#endif

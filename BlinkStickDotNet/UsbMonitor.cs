@@ -110,16 +110,17 @@ namespace BlinkStickDotNet
         /// </summary>
         List<BlinkStick> devices;
 
+#if WINDOWS
         /// <summary>
         /// USB device monitor for Windows.
         /// </summary>
 		private WinUsbDeviceMonitor winUsbDeviceMonitor;
-
+#else
         /// <summary>
         /// USB device monitor for Linux/Mac.
         /// </summary>
         public IDeviceNotifier UsbDeviceNotifier;
-
+#endif
         /// <summary>
         /// Gets a value indicating whether this <see cref="BlinkStickDotNet.UsbMonitor"/> is monitoring.
         /// </summary>
@@ -131,19 +132,16 @@ namespace BlinkStickDotNet
 
 		public UsbMonitor ()
 		{
-            switch (HidSharp.PlatformDetector.RunningPlatform())
-            {
-                case HidSharp.PlatformDetector.Platform.Windows:
-                    winUsbDeviceMonitor = new WinUsbDeviceMonitor();
-                    winUsbDeviceMonitor.DeviceListChanged += HandleDeviceListChanged;
-                    break;
-                case HidSharp.PlatformDetector.Platform.Linux:
-                    UsbDeviceNotifier = DeviceNotifier.OpenDeviceNotifier();
-                    UsbDeviceNotifier.OnDeviceNotify += OnDeviceNotifyEvent;
-                    break;
-            }
-		}
+#if WINDOWS
+            winUsbDeviceMonitor = new WinUsbDeviceMonitor();
+            winUsbDeviceMonitor.DeviceListChanged += HandleDeviceListChanged;
+#else
+            UsbDeviceNotifier = new LibUsbDotNet.DeviceNotify.Linux.LinuxDeviceNotifier();
+            UsbDeviceNotifier.OnDeviceNotify += OnDeviceNotifyEvent;
+#endif
+        }
 
+#if WINDOWS
         /// <summary>
         /// Handles the device list change on Windows.
         /// </summary>
@@ -153,7 +151,7 @@ namespace BlinkStickDotNet
 		{
 			OnUsbDevicesChanged();
 		}
-
+#else
         /// <summary>
         /// Handles device list change on Linux/Mac.
         /// </summary>
@@ -163,23 +161,27 @@ namespace BlinkStickDotNet
         {
             OnUsbDevicesChanged();
         }
+#endif
 
         /// <summary>
         /// Start monitoring for added/removed BlinkStick devices.
         /// </summary>
-		public void Start ()
+        public void Start ()
 		{
             //Get the list of already connected BlinkSticks
             devices = new List<BlinkStick>(BlinkStick.FindAll());
 
+#if WINDOWS
+            if (winUsbDeviceMonitor != null)
+            {
+                winUsbDeviceMonitor.Enabled = true;
+            }
+#else
             if (UsbDeviceNotifier != null)
             {
                 UsbDeviceNotifier.Enabled = true;
             }
-            else if (winUsbDeviceMonitor != null)
-            {
-                winUsbDeviceMonitor.Enabled = true;
-            }
+#endif
 
             Monitoring = true;
 		}
@@ -189,15 +191,19 @@ namespace BlinkStickDotNet
         /// </summary>
 		public void Stop ()
 		{
-            if (UsbDeviceNotifier != null) {
-				UsbDeviceNotifier.Enabled = false;  // Disable the device notifier
-
-				UsbDeviceNotifier.OnDeviceNotify -= OnDeviceNotifyEvent;
-			}
-            else if (winUsbDeviceMonitor != null)
+#if WINDOWS
+            if (winUsbDeviceMonitor != null)
             {
                 winUsbDeviceMonitor.Enabled = false;
             }
+#else
+            if (UsbDeviceNotifier != null)
+            {
+                UsbDeviceNotifier.Enabled = false;  // Disable the device notifier
+
+                UsbDeviceNotifier.OnDeviceNotify -= OnDeviceNotifyEvent;
+            }
+#endif
 
 			Monitoring = false;
 		}
@@ -231,4 +237,3 @@ namespace BlinkStickDotNet
         }
     }
 }
-
